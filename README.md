@@ -1,6 +1,6 @@
 # dotspin
 
-15 dot-matrix CSS spinners. One element each. Zero JS. Zero dependencies.
+20 dot-matrix CSS spinners. One element each. Zero JS. Zero dependencies.
 
 **[Live demo →](https://naklitechie.github.io/dotspin/)**
 
@@ -35,6 +35,11 @@
 | `dotspin--wave-rows` | row of dots sweeps top to bottom |
 | `dotspin--helix` | alternating diagonal strands cross |
 | `dotspin--diagonal-swipe` | anti-diagonal wipes across and off |
+| `dotspin--ticker`         | classic `...` typing indicator — three dots appear one by one |
+| `dotspin--hourglass`      | dots drain top→center→bottom, then reverse |
+| `dotspin--cross`          | `+` rotates 45° to `×`, with a dark flash between |
+| `dotspin--typewriter`     | fills dot by dot, row by row, then clears |
+| `dotspin--counter`        | two dots orbit the ring in opposite directions |
 
 ## Customise
 
