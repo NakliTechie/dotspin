@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dotspin — 15 dot-matrix CSS spinners</title>
+<link rel="icon" href="data:,">
+<style>
+  /* ----- demo page only, the library is below ----- */
+  :root {
+    --bg: #0b0b0d;
+    --bg-card: #131318;
+    --fg: #ededf0;
+    --fg-dim: #7c7c85;
+    --rule: #232329;
+    --accent: #ededf0;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f3ee;
+    --bg-card: #ffffff;
+    --fg: #1a1a1f;
+    --fg-dim: #74747a;
+    --rule: #e3e1d8;
+    --accent: #1a1a1f;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 64px 40px 96px;
+  }
+
+  header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 48px;
+  }
+  header h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(40px, 7vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  header h1 .dotspin {
+    --dotspin-size: 0.7em;
+    margin-right: 0.2em;
+    vertical-align: 0.05em;
+  }
+  header .meta {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fg-dim);
+    text-align: right;
+    line-height: 1.7;
+  }
+  header .meta b { color: var(--fg); font-weight: 400; }
+
+  .lede {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.55;
+    max-width: 56ch;
+    color: var(--fg);
+    margin: 0 0 56px;
+  }
+  .lede .dotspin { --dotspin-size: 1.2em; vertical-align: -0.15em; margin: 0 0.1em; color: var(--fg-dim); }
+
+  /* controls */
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .controls .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--fg-dim);
+    margin-right: 8px;
+  }
+  .controls button {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--fg);
+    font: inherit;
+    font-size: 11px;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .controls button:hover { border-color: var(--fg); }
+  .controls button[aria-pressed="true"] {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+
+  /* spinner grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    border-top: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+  }
+  .cell {
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 28px 24px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .cell:hover { background: color-mix(in srgb, var(--bg-card), var(--fg) 5%); }
+  .cell .num {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 9px;
+    color: var(--fg-dim);
+    letter-spacing: 0.1em;
+  }
+  .stage {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stage .dotspin {
+    --dotspin-size: 56px;
+    color: var(--fg);
+  }
+  .label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .label .name {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    color: var(--fg);
+    line-height: 1.1;
+  }
+  .label .cls {
+    font-size: 10px;
+    color: var(--fg-dim);
+    letter-spacing: 0.04em;
+    user-select: all;
+  }
+
+  .copied {
+    position: absolute;
+    inset: 0;
+    background: var(--fg);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s;
+  }
+  .cell.is-copied .copied { opacity: 1; }
+
+  /* usage block */
+  .usage {
+    margin-top: 64px;
+    padding-top: 40px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+  @media (max-width: 720px) {
+    .usage { grid-template-columns: 1fr; }
+    header { grid-template-columns: 1fr; }
+    header .meta { text-align: left; }
+  }
+  .usage h2 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 28px;
+    margin: 0 0 16px;
+  }
+  .usage p {
+    color: var(--fg-dim);
+    margin: 0 0 16px;
+    max-width: 50ch;
+  }
+  .usage code, .usage pre {
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .usage pre {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 0 0 12px;
+    line-height: 1.6;
+  }
+  .usage pre .k { color: var(--fg-dim); }
+
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--fg-dim);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  /* ============================================================
+     dotspin.css — embedded below for single-file convenience.
+     Copy everything between the markers into your own .css file.
+     ============================================================ */
+
+  /* >>> dotspin.css ===================================================== */
+
+  .dotspin {
+    --dotspin-size: 1em;
+    --dotspin-speed: 1.2s;
+    --_s: var(--dotspin-size);
+    --_d: calc(var(--_s) * 0.16);
+    --_g: calc(var(--_s) * 0.22);
+    --_on: currentColor;
+    --_off: transparent;
+    display: inline-block;
+    position: relative;
+    width: var(--_s);
+    height: var(--_s);
+    vertical-align: middle;
+    color: inherit;
+  }
+  .dotspin::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--_s) * 0.1);
+    left: calc(var(--_s) * 0.1);
+    width: var(--_d);
+    height: var(--_d);
+    border-radius: 50%;
+    background: transparent;
+    animation: var(--dotspin-speed) steps(1, end) infinite;
+  }
+  .dotspin {
+    --p00: 0 0;                          --p10: calc(var(--_g) * 1) 0;       --p20: calc(var(--_g) * 2) 0;       --p30: calc(var(--_g) * 3) 0;       --p40: calc(var(--_g) * 4) 0;
+    --p01: 0 calc(var(--_g) * 1);        --p11: calc(var(--_g) * 1) calc(var(--_g) * 1); --p21: calc(var(--_g) * 2) calc(var(--_g) * 1); --p31: calc(var(--_g) * 3) calc(var(--_g) * 1); --p41: calc(var(--_g) * 4) calc(var(--_g) * 1);
+    --p02: 0 calc(var(--_g) * 2);        --p12: calc(var(--_g) * 1) calc(var(--_g) * 2); --p22: calc(var(--_g) * 2) calc(var(--_g) * 2); --p32: calc(var(--_g) * 3) calc(var(--_g) * 2); --p42: calc(var(--_g) * 4) calc(var(--_g) * 2);
+    --p03: 0 calc(var(--_g) * 3);        --p13: calc(var(--_g) * 1) calc(var(--_g) * 3); --p23: calc(var(--_g) * 2) calc(var(--_g) * 3); --p33: calc(var(--_g) * 3) calc(var(--_g) * 3); --p43: calc(var(--_g) * 4) calc(var(--_g) * 3);
+    --p04: 0 calc(var(--_g) * 4);        --p14: calc(var(--_g) * 1) calc(var(--_g) * 4); --p24: calc(var(--_g) * 2) calc(var(--_g) * 4); --p34: calc(var(--_g) * 3) calc(var(--_g) * 4); --p44: calc(var(--_g) * 4) calc(var(--_g) * 4);
+  }
+
+  .dotspin--braille::before { animation-name: dotspin-braille; }
+  @keyframes dotspin-braille {
+    0%   { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p13), var(--_off) var(--p23); }
+    16%  { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_on)  var(--p12), var(--_off) var(--p22), var(--_off) var(--p13), var(--_off) var(--p23); }
+    33%  { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_on)  var(--p12), var(--_off) var(--p22), var(--_on)  var(--p13), var(--_off) var(--p23); }
+    50%  { box-shadow: var(--_on) var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p12), var(--_off) var(--p22), var(--_on)  var(--p13), var(--_off) var(--p23); }
+    66%  { box-shadow: var(--_on) var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p13), var(--_off) var(--p23); }
+    83%  { box-shadow: var(--_on) var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p13), var(--_on)  var(--p23); }
+    100% { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p13), var(--_off) var(--p23); }
+  }
+
+  .dotspin--orbit::before { animation-name: dotspin-orbit; }
+  @keyframes dotspin-orbit {
+    0%   { box-shadow: var(--_on) var(--p11); }
+    12%  { box-shadow: var(--_on) var(--p21); }
+    25%  { box-shadow: var(--_on) var(--p31); }
+    37%  { box-shadow: var(--_on) var(--p32); }
+    50%  { box-shadow: var(--_on) var(--p33); }
+    62%  { box-shadow: var(--_on) var(--p23); }
+    75%  { box-shadow: var(--_on) var(--p13); }
+    87%  { box-shadow: var(--_on) var(--p12); }
+    100% { box-shadow: var(--_on) var(--p11); }
+  }
+
+  .dotspin--breathe::before { animation-name: dotspin-breathe; }
+  @keyframes dotspin-breathe {
+    0%, 100% { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    20% { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    40% { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+    60% { box-shadow: var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33); }
+    80% { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+  }
+
+  .dotspin--snake::before { animation-name: dotspin-snake; animation-duration: calc(var(--dotspin-speed) * 1.4); }
+  @keyframes dotspin-snake {
+    0%   { box-shadow: var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31); }
+    14%  { box-shadow: var(--_on) var(--p21), var(--_on) var(--p31), var(--_on) var(--p32); }
+    28%  { box-shadow: var(--_on) var(--p31), var(--_on) var(--p32), var(--_on) var(--p33); }
+    42%  { box-shadow: var(--_on) var(--p32), var(--_on) var(--p33), var(--_on) var(--p23); }
+    57%  { box-shadow: var(--_on) var(--p33), var(--_on) var(--p23), var(--_on) var(--p13); }
+    71%  { box-shadow: var(--_on) var(--p23), var(--_on) var(--p13), var(--_on) var(--p12); }
+    85%  { box-shadow: var(--_on) var(--p13), var(--_on) var(--p12), var(--_on) var(--p11); }
+    100% { box-shadow: var(--_on) var(--p12), var(--_on) var(--p11), var(--_on) var(--p21); }
+  }
+
+  .dotspin--fill-sweep::before { animation-name: dotspin-fill-sweep; animation-duration: calc(var(--dotspin-speed) * 1.5); }
+  @keyframes dotspin-fill-sweep {
+    0%   { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    16%  { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    33%  { box-shadow: var(--_on) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+    50%  { box-shadow: var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33); }
+    66%  { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33); }
+    83%  { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_on) var(--p33); }
+    100% { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+  }
+
+  .dotspin--pulse::before { animation-name: dotspin-pulse; }
+  @keyframes dotspin-pulse {
+    0%, 100% { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    50%      { box-shadow: var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31), var(--_on)  var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32), var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33); }
+  }
+
+  .dotspin--columns::before { animation-name: dotspin-columns; }
+  @keyframes dotspin-columns {
+    0%   { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+    25%  { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33); }
+    50%  { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33); }
+    75%  { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33); }
+    100% { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_on) var(--p32), var(--_on) var(--p13), var(--_off) var(--p23), var(--_on) var(--p33); }
+  }
+
+  .dotspin--checkerboard::before { animation-name: dotspin-checkerboard; }
+  @keyframes dotspin-checkerboard {
+    0%, 49%   { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_off) var(--p23), var(--_on) var(--p33); }
+    50%, 100% { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_off) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+  }
+
+  .dotspin--scan::before { animation-name: dotspin-scan; }
+  @keyframes dotspin-scan {
+    0%   { box-shadow: var(--_on) var(--p11), var(--_on) var(--p12), var(--_on) var(--p13); }
+    33%  { box-shadow: var(--_on) var(--p21), var(--_on) var(--p22), var(--_on) var(--p23); }
+    66%  { box-shadow: var(--_on) var(--p31), var(--_on) var(--p32), var(--_on) var(--p33); }
+    100% { box-shadow: var(--_on) var(--p11), var(--_on) var(--p12), var(--_on) var(--p13); }
+  }
+
+  .dotspin--rain::before { animation-name: dotspin-rain; animation-duration: calc(var(--dotspin-speed) * 1.3); }
+  @keyframes dotspin-rain {
+    0%   { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    25%  { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_on) var(--p33); }
+    50%  { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    75%  { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+    100% { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+  }
+
+  .dotspin--cascade::before { animation-name: dotspin-cascade; }
+  @keyframes dotspin-cascade {
+    0%   { box-shadow: var(--_on)  var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    20%  { box-shadow: var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31), var(--_on)  var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    40%  { box-shadow: var(--_off) var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31), var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32), var(--_on)  var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    60%  { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31), var(--_off) var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32), var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33); }
+    80%  { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32), var(--_off) var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33); }
+    100% { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33); }
+  }
+
+  .dotspin--sparkle::before { animation-name: dotspin-sparkle; animation-duration: calc(var(--dotspin-speed) * 1.2); }
+  @keyframes dotspin-sparkle {
+    0%   { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+    20%  { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_off) var(--p23), var(--_on) var(--p33); }
+    40%  { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_on) var(--p33); }
+    60%  { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31), var(--_on) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    80%  { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+    100% { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+  }
+
+  .dotspin--wave-rows::before { animation-name: dotspin-wave-rows; }
+  @keyframes dotspin-wave-rows {
+    0%   { box-shadow: var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    33%  { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+    66%  { box-shadow: var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33); }
+    100% { box-shadow: var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33); }
+  }
+
+  .dotspin--helix::before { animation-name: dotspin-helix; }
+  @keyframes dotspin-helix {
+    0%   { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_off) var(--p23), var(--_on) var(--p33); }
+    25%  { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+    50%  { box-shadow: var(--_off) var(--p11), var(--_on) var(--p21), var(--_off) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_off) var(--p13), var(--_on) var(--p23), var(--_off) var(--p33); }
+    75%  { box-shadow: var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33); }
+    100% { box-shadow: var(--_on) var(--p11), var(--_off) var(--p21), var(--_on) var(--p31), var(--_off) var(--p12), var(--_on) var(--p22), var(--_off) var(--p32), var(--_on) var(--p13), var(--_off) var(--p23), var(--_on) var(--p33); }
+  }
+
+  .dotspin--diagonal-swipe::before { animation-name: dotspin-diagonal-swipe; }
+  @keyframes dotspin-diagonal-swipe {
+    0%   { box-shadow: var(--_on) var(--p11); }
+    16%  { box-shadow: var(--_on) var(--p21), var(--_on) var(--p12); }
+    33%  { box-shadow: var(--_on) var(--p31), var(--_on) var(--p22), var(--_on) var(--p13); }
+    50%  { box-shadow: var(--_on) var(--p32), var(--_on) var(--p23); }
+    66%  { box-shadow: var(--_on) var(--p33); }
+    83%  { box-shadow: var(--_off) var(--p33); }
+    100% { box-shadow: var(--_on) var(--p11); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dotspin::before {
+      animation: none !important;
+      box-shadow:
+        var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31),
+        var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32),
+        var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33);
+    }
+  }
+
+  /* <<< end dotspin.css ================================================== */
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <header>
+      <h1><i class="dotspin dotspin--orbit"></i>dotspin</h1>
+      <div class="meta">
+        <div><b>15</b> spinners</div>
+        <div>pure CSS · zero JS</div>
+        <div>v0.1 · 2026</div>
+      </div>
+    </header>
+
+    <p class="lede">
+      Fifteen tiny dot-matrix loaders <i class="dotspin dotspin--breathe"></i> built from a single
+      element each — one <code>&lt;i&gt;</code>, one <code>::before</code>, and a <code>box-shadow</code>
+      keyframe walking through frames. They inherit <code>currentColor</code>, scale to any size,
+      and respect <code>prefers-reduced-motion</code> <i class="dotspin dotspin--pulse"></i>.
+    </p>
+
+    <div class="controls">
+      <span class="label">theme</span>
+      <button data-theme="dark"  aria-pressed="true">dark</button>
+      <button data-theme="light" aria-pressed="false">light</button>
+      <span class="label" style="margin-left:24px">size</span>
+      <button data-size="40"  aria-pressed="false">40</button>
+      <button data-size="56"  aria-pressed="true">56</button>
+      <button data-size="80"  aria-pressed="false">80</button>
+      <button data-size="120" aria-pressed="false">120</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <section class="usage">
+      <div>
+        <h2>Markup</h2>
+        <p>One element per spinner. Add the variant class. That's it.</p>
+<pre><span class="k">&lt;!-- include dotspin.css --&gt;</span>
+&lt;link rel="stylesheet" href="dotspin.css"&gt;
+
+&lt;i class="dotspin dotspin--orbit"&gt;&lt;/i&gt;
+&lt;i class="dotspin dotspin--braille"&gt;&lt;/i&gt;
+&lt;i class="dotspin dotspin--pulse"&gt;&lt;/i&gt;</pre>
+      </div>
+      <div>
+        <h2>Customise</h2>
+        <p>Three CSS variables, plus <code>color</code>. No build step.</p>
+<pre>.dotspin {
+  --dotspin-size: 64px;     <span class="k">/* default 1em */</span>
+  --dotspin-speed: 0.9s;    <span class="k">/* default 1.2s */</span>
+  color: #ff5733;           <span class="k">/* dots use currentColor */</span>
+}</pre>
+      </div>
+    </section>
+
+    <footer>
+      <span>dotspin.css · MIT · inspired by <a href="https://github.com/gunnargray-dev/unicode-animations" style="color:inherit">gunnar gray</a></span>
+      <span>click any tile to copy its class</span>
+    </footer>
+  </div>
+
+<script>
+  const SPINNERS = [
+    ["Braille",        "braille"],
+    ["Orbit",          "orbit"],
+    ["Breathe",        "breathe"],
+    ["Snake",          "snake"],
+    ["Fill Sweep",     "fill-sweep"],
+    ["Pulse",          "pulse"],
+    ["Columns",        "columns"],
+    ["Checkerboard",   "checkerboard"],
+    ["Scan",           "scan"],
+    ["Rain",           "rain"],
+    ["Cascade",        "cascade"],
+    ["Sparkle",        "sparkle"],
+    ["Wave Rows",      "wave-rows"],
+    ["Helix",          "helix"],
+    ["Diagonal Swipe", "diagonal-swipe"],
+  ];
+
+  const grid = document.getElementById("grid");
+  SPINNERS.forEach(([name, slug], i) => {
+    const cls = `dotspin--${slug}`;
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.cls = cls;
+    cell.innerHTML = `
+      <span class="num">${String(i + 1).padStart(2, "0")}</span>
+      <div class="stage"><i class="dotspin ${cls}"></i></div>
+      <div class="label">
+        <span class="name">${name}</span>
+        <span class="cls">.${cls}</span>
+      </div>
+      <div class="copied">copied</div>
+    `;
+    cell.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(cls); } catch {}
+      cell.classList.add("is-copied");
+      setTimeout(() => cell.classList.remove("is-copied"), 850);
+    });
+    grid.appendChild(cell);
+  });
+
+  // theme toggle
+  document.querySelectorAll("[data-theme]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.documentElement.dataset.theme = btn.dataset.theme;
+      document.querySelectorAll("[data-theme]").forEach(b =>
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+    });
+  });
+
+  // size toggle
+  document.querySelectorAll("[data-size]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const px = btn.dataset.size + "px";
+      document.querySelectorAll(".stage .dotspin").forEach(el =>
+        el.style.setProperty("--dotspin-size", px));
+      document.querySelectorAll("[data-size]").forEach(b =>
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+    });
+  });
+</script>
+</body>
+</html>

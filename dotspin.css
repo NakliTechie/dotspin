@@ -1,0 +1,536 @@
+/* ==========================================================================
+   dotspin.css — 15 dot-matrix spinners, pure CSS, zero dependencies
+   --------------------------------------------------------------------------
+   Usage:   <i class="dotspin dotspin--orbit"></i>
+   Size:    set --dotspin-size (default 1em) to scale the whole thing
+   Color:   inherits currentColor; set color on the element or a parent
+   Speed:   set --dotspin-speed (default 1.2s)
+
+   Anatomy: each spinner is one element. ::before paints a single dot in
+   the top-left cell of an invisible 5×5 grid; box-shadow places (or hides)
+   the other 24 dots. Keyframes step through frames; each frame is a full
+   25-shadow list, so layout never reflows. "On" dots use currentColor,
+   "off" dots use transparent — same shadow count, same positions.
+   ========================================================================== */
+
+.dotspin {
+  --dotspin-size: 1em;
+  --dotspin-speed: 1.2s;
+  --_s: var(--dotspin-size);
+  --_d: calc(var(--_s) * 0.16);  /* dot diameter */
+  --_g: calc(var(--_s) * 0.22);  /* grid step (center-to-center) */
+  --_on: currentColor;
+  --_off: transparent;
+
+  display: inline-block;
+  position: relative;
+  width: var(--_s);
+  height: var(--_s);
+  vertical-align: middle;
+  color: inherit;
+}
+
+.dotspin::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--_s) * 0.1);
+  left: calc(var(--_s) * 0.1);
+  width: var(--_d);
+  height: var(--_d);
+  border-radius: 50%;
+  background: transparent;  /* the anchor dot itself stays invisible */
+  animation: var(--dotspin-speed) steps(1, end) infinite;
+}
+
+/* --------------------------------------------------------------------------
+   Shadow position helpers
+   --------------------------------------------------------------------------
+   Each dot lives at (col * --_g, row * --_g). To keep keyframes readable
+   we name every position once via custom properties.
+   -------------------------------------------------------------------------- */
+.dotspin {
+  --p00: 0 0;                          --p10: calc(var(--_g) * 1) 0;       --p20: calc(var(--_g) * 2) 0;       --p30: calc(var(--_g) * 3) 0;       --p40: calc(var(--_g) * 4) 0;
+  --p01: 0 calc(var(--_g) * 1);        --p11: calc(var(--_g) * 1) calc(var(--_g) * 1); --p21: calc(var(--_g) * 2) calc(var(--_g) * 1); --p31: calc(var(--_g) * 3) calc(var(--_g) * 1); --p41: calc(var(--_g) * 4) calc(var(--_g) * 1);
+  --p02: 0 calc(var(--_g) * 2);        --p12: calc(var(--_g) * 1) calc(var(--_g) * 2); --p22: calc(var(--_g) * 2) calc(var(--_g) * 2); --p32: calc(var(--_g) * 3) calc(var(--_g) * 2); --p42: calc(var(--_g) * 4) calc(var(--_g) * 2);
+  --p03: 0 calc(var(--_g) * 3);        --p13: calc(var(--_g) * 1) calc(var(--_g) * 3); --p23: calc(var(--_g) * 2) calc(var(--_g) * 3); --p33: calc(var(--_g) * 3) calc(var(--_g) * 3); --p43: calc(var(--_g) * 4) calc(var(--_g) * 3);
+  --p04: 0 calc(var(--_g) * 4);        --p14: calc(var(--_g) * 1) calc(var(--_g) * 4); --p24: calc(var(--_g) * 2) calc(var(--_g) * 4); --p34: calc(var(--_g) * 3) calc(var(--_g) * 4); --p44: calc(var(--_g) * 4) calc(var(--_g) * 4);
+}
+
+/* ==========================================================================
+   Frame macro convention
+   --------------------------------------------------------------------------
+   In every keyframe we list all 25 positions in row-major order. Each is
+   either var(--_on) or var(--_off) at its var(--pXY) position. This keeps
+   keyframes uniform and easy to edit.
+   ========================================================================== */
+
+/* --- 1. BRAILLE -----------------------------------------------------------
+   Classic 6-dot braille cycle (2x3 cells), centered on the grid.
+   Cells used: (1,1)(2,1)(1,2)(2,2)(1,3)(2,3)
+*/
+.dotspin--braille::before { animation-name: dotspin-braille; }
+@keyframes dotspin-braille {
+  0% {
+    box-shadow:
+      var(--_on) var(--p11), var(--_off) var(--p21),
+      var(--_off) var(--p12), var(--_off) var(--p22),
+      var(--_off) var(--p13), var(--_off) var(--p23);
+  }
+  16% {
+    box-shadow:
+      var(--_on) var(--p11), var(--_off) var(--p21),
+      var(--_on) var(--p12), var(--_off) var(--p22),
+      var(--_off) var(--p13), var(--_off) var(--p23);
+  }
+  33% {
+    box-shadow:
+      var(--_on) var(--p11), var(--_off) var(--p21),
+      var(--_on) var(--p12), var(--_off) var(--p22),
+      var(--_on) var(--p13), var(--_off) var(--p23);
+  }
+  50% {
+    box-shadow:
+      var(--_on) var(--p11), var(--_on) var(--p21),
+      var(--_on) var(--p12), var(--_off) var(--p22),
+      var(--_on) var(--p13), var(--_off) var(--p23);
+  }
+  66% {
+    box-shadow:
+      var(--_on) var(--p11), var(--_on) var(--p21),
+      var(--_on) var(--p12), var(--_on) var(--p22),
+      var(--_on) var(--p13), var(--_off) var(--p23);
+  }
+  83% {
+    box-shadow:
+      var(--_on) var(--p11), var(--_on) var(--p21),
+      var(--_on) var(--p12), var(--_on) var(--p22),
+      var(--_on) var(--p13), var(--_on) var(--p23);
+  }
+  100% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21),
+      var(--_off) var(--p12), var(--_off) var(--p22),
+      var(--_off) var(--p13), var(--_off) var(--p23);
+  }
+}
+
+/* --- 2. ORBIT -------------------------------------------------------------
+   A single dot circles a 3x3 ring around the center.
+*/
+.dotspin--orbit::before { animation-name: dotspin-orbit; animation-duration: var(--dotspin-speed); }
+@keyframes dotspin-orbit {
+  0%   { box-shadow: var(--_on) var(--p11); }
+  12%  { box-shadow: var(--_on) var(--p21); }
+  25%  { box-shadow: var(--_on) var(--p31); }
+  37%  { box-shadow: var(--_on) var(--p32); }
+  50%  { box-shadow: var(--_on) var(--p33); }
+  62%  { box-shadow: var(--_on) var(--p23); }
+  75%  { box-shadow: var(--_on) var(--p13); }
+  87%  { box-shadow: var(--_on) var(--p12); }
+  100% { box-shadow: var(--_on) var(--p11); }
+}
+
+/* --- 3. BREATHE -----------------------------------------------------------
+   A 3x3 block fades in from center outward, then collapses.
+*/
+.dotspin--breathe::before { animation-name: dotspin-breathe; }
+@keyframes dotspin-breathe {
+  0%, 100% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  20% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  40% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  60% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  80% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+}
+
+/* --- 4. SNAKE -------------------------------------------------------------
+   3-dot snake slithers through a 3x3 grid.
+*/
+.dotspin--snake::before { animation-name: dotspin-snake; animation-duration: calc(var(--dotspin-speed) * 1.4); }
+@keyframes dotspin-snake {
+  0%   { box-shadow: var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31); }
+  14%  { box-shadow: var(--_on) var(--p21), var(--_on) var(--p31), var(--_on) var(--p32); }
+  28%  { box-shadow: var(--_on) var(--p31), var(--_on) var(--p32), var(--_on) var(--p33); }
+  42%  { box-shadow: var(--_on) var(--p32), var(--_on) var(--p33), var(--_on) var(--p23); }
+  57%  { box-shadow: var(--_on) var(--p33), var(--_on) var(--p23), var(--_on) var(--p13); }
+  71%  { box-shadow: var(--_on) var(--p23), var(--_on) var(--p13), var(--_on) var(--p12); }
+  85%  { box-shadow: var(--_on) var(--p13), var(--_on) var(--p12), var(--_on) var(--p11); }
+  100% { box-shadow: var(--_on) var(--p12), var(--_on) var(--p11), var(--_on) var(--p21); }
+}
+
+/* --- 5. FILL SWEEP --------------------------------------------------------
+   3x3 grid fills column-by-column then empties.
+*/
+.dotspin--fill-sweep::before { animation-name: dotspin-fill-sweep; animation-duration: calc(var(--dotspin-speed) * 1.5); }
+@keyframes dotspin-fill-sweep {
+  0% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  16% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  33% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  50% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  66% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  83% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+  100% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+}
+
+/* --- 6. PULSE -------------------------------------------------------------
+   Center dot pulses; ring of 8 dots around it expands and contracts.
+*/
+.dotspin--pulse::before { animation-name: dotspin-pulse; }
+@keyframes dotspin-pulse {
+  0%, 100% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  50% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_on)  var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+}
+
+/* --- 7. COLUMNS -----------------------------------------------------------
+   3 columns rise and fall like an audio EQ.
+*/
+.dotspin--columns::before { animation-name: dotspin-columns; }
+@keyframes dotspin-columns {
+  0% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  25% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  50% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  75% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  100% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+}
+
+/* --- 8. CHECKERBOARD ------------------------------------------------------
+   Two checkerboard phases of a 3x3 grid alternate.
+*/
+.dotspin--checkerboard::before { animation-name: dotspin-checkerboard; }
+@keyframes dotspin-checkerboard {
+  0%, 49% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+  50%, 100% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+}
+
+/* --- 9. SCAN --------------------------------------------------------------
+   A vertical line scans left to right.
+*/
+.dotspin--scan::before { animation-name: dotspin-scan; }
+@keyframes dotspin-scan {
+  0%   { box-shadow: var(--_on) var(--p11), var(--_on) var(--p12), var(--_on) var(--p13); }
+  33%  { box-shadow: var(--_on) var(--p21), var(--_on) var(--p22), var(--_on) var(--p23); }
+  66%  { box-shadow: var(--_on) var(--p31), var(--_on) var(--p32), var(--_on) var(--p33); }
+  100% { box-shadow: var(--_on) var(--p11), var(--_on) var(--p12), var(--_on) var(--p13); }
+}
+
+/* --- 10. RAIN -------------------------------------------------------------
+   Drops at random columns fall from top to bottom.
+*/
+.dotspin--rain::before { animation-name: dotspin-rain; animation-duration: calc(var(--dotspin-speed) * 1.3); }
+@keyframes dotspin-rain {
+  0% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  25% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+  50% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  75% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  100% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+}
+
+/* --- 11. CASCADE ----------------------------------------------------------
+   Diagonal wave: dots light up along /-diagonals from top-left.
+*/
+.dotspin--cascade::before { animation-name: dotspin-cascade; }
+@keyframes dotspin-cascade {
+  0% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  20% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  40% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  60% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  80% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  100% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+}
+
+/* --- 12. SPARKLE ----------------------------------------------------------
+   Random dots twinkle on/off across the 3x3.
+*/
+.dotspin--sparkle::before { animation-name: dotspin-sparkle; animation-duration: calc(var(--dotspin-speed) * 1.2); }
+@keyframes dotspin-sparkle {
+  0% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  20% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+  40% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+  60% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_on)  var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  80% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  100% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+}
+
+/* --- 13. WAVE ROWS --------------------------------------------------------
+   Each of 3 rows lights up in a phase-shifted sine.
+*/
+.dotspin--wave-rows::before { animation-name: dotspin-wave-rows; }
+@keyframes dotspin-wave-rows {
+  0% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  33% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+  66% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_off) var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  100% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_off) var(--p23), var(--_off) var(--p33);
+  }
+}
+
+/* --- 14. HELIX ------------------------------------------------------------
+   Two strands cross, swapping sides each frame.
+*/
+.dotspin--helix::before { animation-name: dotspin-helix; }
+@keyframes dotspin-helix {
+  0% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+  25% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_on)  var(--p12), var(--_on)  var(--p22), var(--_on)  var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  50% {
+    box-shadow:
+      var(--_off) var(--p11), var(--_on)  var(--p21), var(--_off) var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_off) var(--p13), var(--_on)  var(--p23), var(--_off) var(--p33);
+  }
+  75% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_on)  var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_off) var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_on)  var(--p23), var(--_on)  var(--p33);
+  }
+  100% {
+    box-shadow:
+      var(--_on)  var(--p11), var(--_off) var(--p21), var(--_on)  var(--p31),
+      var(--_off) var(--p12), var(--_on)  var(--p22), var(--_off) var(--p32),
+      var(--_on)  var(--p13), var(--_off) var(--p23), var(--_on)  var(--p33);
+  }
+}
+
+/* --- 15. DIAGONAL SWIPE ---------------------------------------------------
+   A diagonal line sweeps across the 3x3 grid from corner to corner.
+*/
+.dotspin--diagonal-swipe::before { animation-name: dotspin-diagonal-swipe; }
+@keyframes dotspin-diagonal-swipe {
+  0%   { box-shadow: var(--_on) var(--p11); }
+  16%  { box-shadow: var(--_on) var(--p21), var(--_on) var(--p12); }
+  33%  { box-shadow: var(--_on) var(--p31), var(--_on) var(--p22), var(--_on) var(--p13); }
+  50%  { box-shadow: var(--_on) var(--p32), var(--_on) var(--p23); }
+  66%  { box-shadow: var(--_on) var(--p33); }
+  83%  { box-shadow: var(--_off) var(--p33); }
+  100% { box-shadow: var(--_on) var(--p11); }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion: freeze on a representative full-grid frame
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .dotspin::before {
+    animation: none !important;
+    box-shadow:
+      var(--_on) var(--p11), var(--_on) var(--p21), var(--_on) var(--p31),
+      var(--_on) var(--p12), var(--_on) var(--p22), var(--_on) var(--p32),
+      var(--_on) var(--p13), var(--_on) var(--p23), var(--_on) var(--p33);
+  }
+}
