@@ -61,6 +61,12 @@ Each spinner is a single element. `::before` paints an anchor dot; `box-shadow` 
 
 `prefers-reduced-motion` is respected: animations stop and the grid renders static.
 
+## Demo palette
+
+The showcase page is coloured with **`memphis-01 · MILAN 1981`** — the founding Memphis exhibition (Arc '74 gallery, 18 September 1981). Sottsass-postmodern cream with magenta/cyan/yellow accents — the spinners themselves inherit `currentColor` and stay neutral; the chrome around them is what catches.
+
+Palette pulled from [**Rangrez**](https://github.com/NakliTechie/rangrez), the global colour-palette library that backs all NakliTechie projects. (Note: the spinner library itself is palette-agnostic — drop it on any background and it just works.)
+
 ## License
 
 MIT © Chirag Patnaik
